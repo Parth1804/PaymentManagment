@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Payments Dashboard</title>
+
+  <!-- Tailwind -->
+  <script>
+    // Enable "class" strategy for dark mode
+    window.tailwind = { config: { darkMode: 'class' } };
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root{ color-scheme: light dark; }
+    html{ font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; }
+    .glass{
+      backdrop-filter: saturate(180%) blur(18px);
+      background: color-mix(in oklab, color(from white srgb 1 1 1 / .65), transparent);
+    }
+    .glass-dark{
+      backdrop-filter: saturate(180%) blur(18px);
+      background: color-mix(in oklab, color(from black srgb 0 0 0 / .45), transparent);
+    }
+    .card{ border: 1px solid rgba(60,60,67,.12); }
+    .dark .card{ border-color: rgba(255,255,255,.10); }
+    .scroll-container{ max-height: 420px; overflow: auto; }
+  </style>
+
+  <!-- PapaParse (CSV helper) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <script>
+    // Theme: honor user preference first time, then remember toggle
+    (function(){
+      const saved = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    })();
+  </script>
+</head>
+
+<body class="min-h-full bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 selection:bg-black selection:text-white">
+  <!-- Header -->
+  <header class="sticky top-0 z-50 border-b border-black/5 dark:border-white/10">
+    <div class="glass dark:glass-dark">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-14 items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="h-6 w-6 rounded-full bg-black dark:bg-white"></div>
+            <span class="text-sm font-semibold tracking-tight">Invoice & Payment Dashboard</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <nav class="hidden sm:flex items-center gap-3 text-xs text-neutral-600 dark:text-neutral-300">
+              <a class="hover:text-black dark:hover:text-white" href="#data">Data</a>
+              <span>•</span>
+              <a class="hover:text-black dark:hover:text-white" href="#entry">New Entry</a>
+              <span>•</span>
+              <a class="hover:text-black dark:hover:text-white" href="#table">Invoices</a>
+            </nav>
+
+            <!-- Dark mode toggle -->
+            <button id="theme-toggle" aria-label="Toggle theme"
+              class="rounded-xl border border-black/10 dark:border-white/15 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-200 hover:bg-black/5 dark:hover:bg-white/10">
+              <span id="theme-label">Dark</span> ▾
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <!-- Hero -->
+    <section class="text-center">
+      <h1 class="text-4xl font-semibold tracking-tight">Invoice & Payment Dashboard</h1>
+      <p class="mt-2 text-neutral-600 dark:text-neutral-300">Upload once → stored in DB → always loads from API.</p>
+    </section>
+
+    <!-- Data controls -->
+    <section id="data" class="card rounded-2xl bg-white dark:bg-neutral-900 p-5">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+        <!-- CSV file upload -->
+        <div class="w-full md:w-1/2">
+          <label for="csv-file-input" class="block text-sm font-medium text-neutral-600 dark:text-neutral-300">Upload CSV Data File</label>
+          <input type="file" id="csv-file-input" accept=".csv"
+            class="mt-2 block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-neutral-200 file:text-neutral-900 hover:file:bg-neutral-300 dark:file:bg-neutral-800 dark:file:text-neutral-100 dark:hover:file:bg-neutral-700" />
+        </div>
+        <div class="w-full md:w-1/2 flex flex-wrap justify-end gap-2">
+          <button id="load-data-btn" class="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90 dark:bg-white dark:text-black">Load Data</button>
+          <button id="download-data-btn" class="rounded-xl bg-neutral-900/80 px-4 py-2 text-sm font-medium text-white hover:opacity-95 dark:bg-neutral-100 dark:text-black">Download Data</button>
+          <label class="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300 ml-auto md:ml-0">
+            <input id="autosave" type="checkbox" class="h-4 w-4 accent-black dark:accent-white" checked /> Auto-save to browser
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Entry Form -->
+    <section id="entry" class="card rounded-2xl bg-white dark:bg-neutral-900 p-5">
+      <h2 class="text-lg font-semibold">Enter New Entry</h2>
+      <div class="flex items-center gap-4 mt-4 mb-6">
+        <label class="inline-flex items-center gap-2 text-sm">
+          <input type="radio" name="entry-type" value="invoice" checked class="h-4 w-4 accent-black dark:accent-white">New Invoice
+        </label>
+        <label class="inline-flex items-center gap-2 text-sm">
+          <input type="radio" name="entry-type" value="payment" class="h-4 w-4 accent-black dark:accent-white">New Payment
+        </label>
+      </div>
+
+      <!-- Invoice Fields -->
+      <div id="invoice-fields" class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Invoice Date (dd-mm-yyyy)</label>
+          <input id="new-invoice-date" placeholder="dd-mm-yyyy" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10" />
+        </div>
+        <div>
+          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Invoice Number</label>
+          <input id="new-invoice-number" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10" />
+        </div>
+        <div>
+          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Company</label>
+          <input id="new-invoice-company" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10" />
+        </div>
+        <div>
+          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Supplier</label>
+          <input id="new-invoice-supplier" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10" />
+        </div>
+        <div>
+          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Invoice Amount</label>
+          <input type="text" inputmode="decimal" id="new-invoice-amount" placeholder="e.g. 5000 or 5,000" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10" />
+        </div>
+      </div>
+
+      <!-- Payment Fields -->
+      <div id="payment-fields" class="grid sm:grid-cols-2 gap-4 hidden">
+        <div>
+          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Payment Date (dd-mm-yyyy)</label>
+          <input id="new-payment-date" placeholder="dd-mm-yyyy" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10" />
+        </div>
+        <div>
+          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Company</label>
+          <select id="new-payment-company-select" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10">
+            <option value="">-- Select Company --</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Supplier</label>
+          <select id="new-payment-supplier-select" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10">
+            <option value="">-- Select Supplier --</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Select Outstanding Invoice</label>
+          <select id="outstanding-invoice-select" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10">
+            <option value="">-- Select an Invoice --</option>
+          </select>
+          <div id="no-outstanding-invoices" class="mt-2 text-xs text-neutral-500 hidden">No outstanding invoices found.</div>
+        </div>
+        <div>
+          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Invoice Number</label>
+          <input id="payment-invoice-number" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-neutral-100 dark:bg-neutral-800 dark:border-white/10" readonly />
+        </div>
+        <div>
+          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Amount Paid</label>
+          <input type="text" inputmode="decimal" id="new-payment-amount" placeholder="e.g. 1200 or 1,200" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10" />
+        </div>
+      </div>
+
+      <button id="submit-btn" class="mt-6 w-full rounded-xl bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90 dark:bg-white dark:text-black">Add Entry</button>
+    </section>
+
+    <div id="status-message" class="hidden card rounded-2xl bg-white dark:bg-neutral-900 p-4 text-center text-sm"></div>
+
+    <!-- Filters -->
+    <section class="card rounded-2xl bg-white dark:bg-neutral-900 p-5">
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Select Company</label>
+          <select id="company-filter" class="mt-2 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10">
+            <option value="">All Companies</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Select Supplier</label>
+          <select id="supplier-filter" class="mt-2 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10">
+            <option value="">All Suppliers</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- KPIs -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="card rounded-2xl bg-white dark:bg-neutral-900 p-6 text-center">
+        <div class="text-sm text-neutral-600 dark:text-neutral-300">Total Invoice Amount</div>
+        <div id="cumulative-invoice-amount" class="mt-2 text-3xl font-semibold">₹0.00</div>
+      </div>
+      <div class="card rounded-2xl bg-white dark:bg-neutral-900 p-6 text-center">
+        <div class="text-sm text-neutral-600 dark:text-neutral-300">Total Paid Amount</div>
+        <div id="cumulative-paid-amount" class="mt-2 text-3xl font-semibold">₹0.00</div>
+      </div>
+      <div class="card rounded-2xl bg-white dark:bg-neutral-900 p-6 text-center">
+        <div class="text-sm text-neutral-600 dark:text-neutral-300">Outstanding Amount</div>
+        <div id="outstanding-amount" class="mt-2 text-3xl font-semibold text-red-600">₹0.00</div>
+      </div>
+    </section>
+
+    <!-- Table -->
+    <section id="table" class="card rounded-2xl bg-white dark:bg-neutral-900 p-5">
+      <h2 class="text-lg font-semibold mb-4">Invoice Details</h2>
+      <div class="scroll-container rounded-xl">
+        <table class="min-w-full divide-y divide-neutral-200 dark:divide-white/10">
+          <thead class="sticky top-0 bg-neutral-100 dark:bg-neutral-800 z-10">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 dark:text-neutral-300 uppercase">Invoice Number</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 dark:text-neutral-300 uppercase">Invoice Date</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 dark:text-neutral-300 uppercase">Company</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 dark:text-neutral-300 uppercase">Supplier</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 dark:text-neutral-300 uppercase">Invoice Amount</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 dark:text-neutral-300 uppercase">Amount Paid</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 dark:text-neutral-300 uppercase">Outstanding</th>
+            </tr>
+          </thead>
+          <tbody id="table-body" class="divide-y divide-neutral-200 dark:divide-white/10"></tbody>
+        </table>
+        <div id="no-data" class="hidden text-center text-neutral-400 dark:text-neutral-500 p-6">No matching data found.</div>
+      </div>
+    </section>
+
+    <footer class="py-10 text-center text-xs text-neutral-500 dark:text-neutral-400">Upload once → saved to DB → loads automatically.</footer>
+  </main>
+
+  <script>
+    /* THEME TOGGLE */
+    const toggleBtn = document.getElementById('theme-toggle');
+    const themeLabel = document.getElementById('theme-label');
+    function setThemeLabel(){
+      const dark = document.documentElement.classList.contains('dark');
+      themeLabel.textContent = dark ? 'Light' : 'Dark';
+    }
+    setThemeLabel();
+    toggleBtn.addEventListener('click', ()=>{
+      const el = document.documentElement;
+      const isDark = el.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      setThemeLabel();
+    });
+
+    /* ====== ORIGINAL APP CODE (unchanged logic) ====== */
+
+    const API_BASE = 'http://localhost:8000';
+
+    const fileInput = document.getElementById('csv-file-input');
+    const loadBtn = document.getElementById('load-data-btn');
+    const dlBtn = document.getElementById('download-data-btn');
+    const autosave = document.getElementById('autosave');
+
+    const companyFilter = document.getElementById('company-filter');
+    const supplierFilter = document.getElementById('supplier-filter');
+
+    const cumulativeInvoiceAmountDiv = document.getElementById('cumulative-invoice-amount');
+    const cumulativePaidAmountDiv = document.getElementById('cumulative-paid-amount');
+    const outstandingAmountDiv = document.getElementById('outstanding-amount');
+
+    const tableBody = document.getElementById('table-body');
+    const noDataMessage = document.getElementById('no-data');
+    const statusMessage = document.getElementById('status-message');
+
+    const entryTypeRadios = document.getElementsByName('entry-type');
+    const invoiceFields = document.getElementById('invoice-fields');
+    const paymentFields = document.getElementById('payment-fields');
+    const submitBtn = document.getElementById('submit-btn');
+
+    const newInvoiceDateInput = document.getElementById('new-invoice-date');
+    const newInvoiceNumberInput = document.getElementById('new-invoice-number');
+    const newInvoiceCompanyInput = document.getElementById('new-invoice-company');
+    const newInvoiceSupplierInput = document.getElementById('new-invoice-supplier');
+    const newInvoiceAmountInput = document.getElementById('new-invoice-amount');
+
+    const newPaymentDateInput = document.getElementById('new-payment-date');
+    const newPaymentCompanySelect = document.getElementById('new-payment-company-select');
+    const newPaymentSupplierSelect = document.getElementById('new-payment-supplier-select');
+    const outstandingInvoiceSelect = document.getElementById('outstanding-invoice-select');
+    const paymentInvoiceNumberInput = document.getElementById('payment-invoice-number');
+    const newPaymentAmountInput = document.getElementById('new-payment-amount');
+    const noOutstandingInvoicesDiv = document.getElementById('no-outstanding-invoices');
+
+    let rows = [];
+
+    function showStatus(msg, kind='ok'){
+      statusMessage.textContent = msg;
+      statusMessage.classList.remove('hidden','bg-red-100','text-red-800','bg-green-100','text-green-800','dark:bg-red-900/30','dark:text-red-200','dark:bg-green-900/30','dark:text-green-200');
+      if(kind==='ok'){
+        statusMessage.classList.add('bg-green-100','text-green-800','dark:bg-green-900/30','dark:text-green-200');
+      } else {
+        statusMessage.classList.add('bg-red-100','text-red-800','dark:bg-red-900/30','dark:text-red-200');
+      }
+      setTimeout(()=>statusMessage.classList.add('hidden'), 2500);
+    }
+
+    function parseAmount(v){
+      if (v == null) return 0;
+      const s = String(v).replace(/[,\s₹]/g,'').trim();
+      const n = Number(s);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function formatDateToDDMMYYYY(date){
+      const day = String(date.getDate()).padStart(2,'0');
+      const month = String(date.getMonth()+1).padStart(2,'0');
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
+    }
+    function setPaymentDateToToday(){ newPaymentDateInput.value = formatDateToDDMMYYYY(new Date()); }
+
+    function validateDate(d){
+      const re = /^\d{2}-\d{2}-\d{4}$/; if(!re.test(d)) return false;
+      const [dd,mm,yyyy] = d.split('-').map(Number);
+      const dt = new Date(yyyy, mm-1, dd);
+      return dt.getFullYear()===yyyy && (dt.getMonth()+1)===mm && dt.getDate()===dd;
+    }
+
+    function persist(){ if(autosave.checked){ localStorage.setItem('paymentsData', JSON.stringify(rows)); } }
+
+    function parseCSV(text){
+      const { data } = Papa.parse(text, { header:true, dynamicTyping:false, skipEmptyLines:true });
+      return data.map(r=>({
+        Invoice_date: String(r.Invoice_date||'').trim(),
+        Invoice_Number: String(r.Invoice_Number||'').trim(),
+        Payment_date: String(r.Payment_date||'').trim(),
+        Company_Name: String(r.Company_Name||'').trim().toUpperCase(),
+        Supplier_Name: String(r.Supplier_Name||'').trim().toUpperCase(),
+        Invoice_Amount: parseAmount(r.Invoice_Amount),
+        Amount_Paid: parseAmount(r.Amount_Paid)
+      }));
+    }
+
+    function toCSV(data){
+      const headers = ['Invoice_date','Invoice_Number','Payment_date','Company_Name','Supplier_Name','Invoice_Amount','Amount_Paid'];
+      return Papa.unparse({ fields: headers, data: data.map(r=>headers.map(h=>r[h])) });
+    }
+
+    function consolidateByInvoice(list){
+      const map = new Map();
+      list.forEach(e=>{
+        const key = e.Invoice_Number;
+        if(!map.has(key)) map.set(key,{
+          Invoice_date: e.Invoice_date || '',
+          Invoice_Number: e.Invoice_Number || '',
+          Payment_date: '',
+          Company_Name: e.Company_Name || '',
+          Supplier_Name: e.Supplier_Name || '',
+          Invoice_Amount: 0,
+          Amount_Paid: 0,
+          Outstanding: 0
+        });
+        const obj = map.get(key);
+        obj.Amount_Paid   += parseAmount(e.Amount_Paid||0);
+        obj.Invoice_Amount+= parseAmount(e.Invoice_Amount||0);
+        obj.Outstanding    = obj.Invoice_Amount - obj.Amount_Paid;
+        if(!obj.Invoice_date) obj.Invoice_date = e.Invoice_date;
+        obj.Company_Name = obj.Company_Name || e.Company_Name;
+        obj.Supplier_Name = obj.Supplier_Name || e.Supplier_Name;
+      });
+      return Array.from(map.values());
+    }
+
+    function refreshFilters(){
+      const companies = Array.from(new Set(rows.map(r=>r.Company_Name).filter(Boolean))).sort();
+      const suppliers = Array.from(new Set(rows.map(r=>r.Supplier_Name).filter(Boolean))).sort();
+      companyFilter.innerHTML = '<option value="">All Companies</option>' + companies.map(c=>`<option>${c.toUpperCase()}</option>`).join('');
+      supplierFilter.innerHTML = '<option value="">All Suppliers</option>' + suppliers.map(s=>`<option>${s.toUpperCase()}</option>`).join('');
+      newPaymentCompanySelect.innerHTML = '<option value="">-- Select Company --</option>' + companies.map(c=>`<option>${c.toUpperCase()}</option>`).join('');
+      newPaymentSupplierSelect.innerHTML = '<option value="">-- Select Supplier --</option>' + suppliers.map(s=>`<option>${s.toUpperCase()}</option>`).join('');
+    }
+
+    function populateOutstandingInvoicesList(){
+      const selCompany = newPaymentCompanySelect.value;
+      const selSupplier = newPaymentSupplierSelect.value;
+      const filtered = rows.filter(r=>{
+        const c = selCompany ? r.Company_Name.toUpperCase()===selCompany : true;
+        const s = selSupplier ? r.Supplier_Name.toUpperCase()===selSupplier : true;
+        return c && s;
+      });
+      const consolidated = consolidateByInvoice(filtered).filter(x=>x.Outstanding>0);
+      outstandingInvoiceSelect.innerHTML = '<option value="">-- Select an Invoice --</option>';
+      if(consolidated.length===0){ noOutstandingInvoicesDiv.classList.remove('hidden'); return; }
+      noOutstandingInvoicesDiv.classList.add('hidden');
+      consolidated.forEach(item=>{
+        const opt = document.createElement('option');
+        opt.value = item.Invoice_Number;
+        opt.textContent = `Inv: ${item.Invoice_Number} - ${item.Company_Name?.toUpperCase()} / ${item.Supplier_Name?.toUpperCase()} (₹${item.Outstanding.toFixed(2)} outstanding)`;
+        opt.dataset.amount = String(item.Outstanding);
+        outstandingInvoiceSelect.appendChild(opt);
+      });
+    }
+
+    function updateDashboard(){
+      const selCompany = companyFilter.value;
+      const selSupplier = supplierFilter.value;
+      const filtered = rows.filter(r=>{
+        const cm = selCompany? r.Company_Name.toUpperCase()===selCompany : true;
+        const sm = selSupplier? r.Supplier_Name.toUpperCase()===selSupplier : true;
+        return cm && sm;
+      });
+      const consolidated = consolidateByInvoice(filtered);
+
+      let totalInv=0, totalPaid=0, totalOut=0;
+      consolidated.forEach(x=>{ totalInv+=x.Invoice_Amount; totalPaid+=x.Amount_Paid; totalOut+=x.Outstanding; });
+      cumulativeInvoiceAmountDiv.textContent = `₹${totalInv.toFixed(2)}`;
+      cumulativePaidAmountDiv.textContent = `₹${totalPaid.toFixed(2)}`;
+      outstandingAmountDiv.textContent = `₹${totalOut.toFixed(2)}`;
+
+      tableBody.innerHTML = '';
+      if(consolidated.length===0){ noDataMessage.classList.remove('hidden'); }
+      else {
+        noDataMessage.classList.add('hidden');
+        consolidated.forEach(item=>{
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="px-6 py-3 text-sm">${item.Invoice_Number}</td>
+            <td class="px-6 py-3 text-sm">${item.Invoice_date || ''}</td>
+            <td class="px-6 py-3 text-sm">${(item.Company_Name||'').toUpperCase()}</td>
+            <td class="px-6 py-3 text-sm">${(item.Supplier_Name||'').toUpperCase()}</td>
+            <td class="px-6 py-3 text-sm">₹${(item.Invoice_Amount||0).toFixed(2)}</td>
+            <td class="px-6 py-3 text-sm">₹${(item.Amount_Paid||0).toFixed(2)}</td>
+            <td class="px-6 py-3 text-sm ${item.Outstanding>0?'text-red-500 dark:text-red-400 font-semibold':'text-green-600 dark:text-green-400'}">₹${(item.Outstanding||0).toFixed(2)}</td>`;
+          tableBody.appendChild(tr);
+        });
+      }
+    }
+
+    async function uploadCSVToServer(file){
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch(`${API_BASE}/upload-csv`, { method:'POST', body: form });
+      if(!res.ok){
+        const t = await res.text().catch(()=> '');
+        throw new Error(`Upload failed: ${res.status} ${t}`);
+      }
+      return res.json();
+    }
+
+    async function loadFromAPI(){
+      const res = await fetch(`${API_BASE}/feedback`, { cache:'no-store' });
+      if(!res.ok){
+        const t = await res.text().catch(()=> '');
+        throw new Error(`API fetch failed: ${res.status} ${t}`);
+      }
+      const data = await res.json();
+      rows = data.map(r=>({
+        Invoice_date: r.Invoice_date || '',
+        Invoice_Number: r.Invoice_Number || '',
+        Payment_date: r.Payment_date || '',
+        Company_Name: (r.Company_Name||'').toUpperCase(),
+        Supplier_Name: (r.Supplier_Name||'').toUpperCase(),
+        Invoice_Amount: parseAmount(r.Invoice_Amount),
+        Amount_Paid: parseAmount(r.Amount_Paid),
+      }));
+      refreshFilters(); updateDashboard(); persist();
+    }
+
+    function bootstrapFromLocal(){
+      try{
+        const raw = localStorage.getItem('paymentsData');
+        if(raw){ rows = JSON.parse(raw); return rows.length>0; }
+      }catch{}
+      return false;
+    }
+
+    function handleFileLocal(file){
+      const reader = new FileReader();
+      reader.onload = (e)=>{
+        rows = parseCSV(e.target.result);
+        refreshFilters(); updateDashboard(); persist(); showStatus('CSV loaded locally');
+      };
+      reader.readAsText(file);
+    }
+
+    function downloadCSV(){
+      if(!rows.length){ showStatus('No data to download','err'); return; }
+      const csv = toCSV(rows);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const today = new Date();
+      const date = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+      a.href=url; a.download = 'updated_payment_data_'+date+'.csv'; a.click();
+      URL.revokeObjectURL(url);
+      showStatus('Data downloaded');
+    }
+
+    loadBtn.addEventListener('click', async ()=>{
+      try{
+        if(fileInput.files[0]){
+          await uploadCSVToServer(fileInput.files[0]);
+          await loadFromAPI();
+          showStatus('Uploaded to server & reloaded from DB');
+        } else {
+          await loadFromAPI();
+          showStatus('Loaded from server');
+        }
+      }catch(err){
+        showStatus(err.message || 'Server not reachable. Using local cache if available…', 'err');
+        const okLocal = bootstrapFromLocal();
+        if(okLocal){ refreshFilters(); updateDashboard(); showStatus('Loaded from browser cache'); }
+      }
+    });
+
+    fileInput.addEventListener('change', async (e)=>{
+      const f = e.target.files[0];
+      if(!f) return;
+      try{
+        await uploadCSVToServer(f);
+        await loadFromAPI();
+        showStatus('Uploaded to server & reloaded from DB');
+      }catch(err){
+        handleFileLocal(f);
+        showStatus('Server upload failed; previewing locally', 'err');
+      }
+    });
+
+    dlBtn.addEventListener('click', downloadCSV);
+    companyFilter.addEventListener('change', updateDashboard);
+    supplierFilter.addEventListener('change', updateDashboard);
+    newPaymentCompanySelect.addEventListener('change', populateOutstandingInvoicesList);
+    newPaymentSupplierSelect.addEventListener('change', populateOutstandingInvoicesList);
+
+    outstandingInvoiceSelect.addEventListener('change', ()=>{
+      const opt = outstandingInvoiceSelect.options[outstandingInvoiceSelect.selectedIndex];
+      if(opt && opt.value){
+        paymentInvoiceNumberInput.value = opt.value;
+        newPaymentAmountInput.value = opt.dataset.amount || '';
+      } else { paymentInvoiceNumberInput.value=''; newPaymentAmountInput.value=''; }
+    });
+
+    entryTypeRadios.forEach(r=>{
+      r.addEventListener('change', ()=>{
+        if(r.value==='invoice'){
+          invoiceFields.classList.remove('hidden');
+          paymentFields.classList.add('hidden');
+        } else {
+          invoiceFields.classList.add('hidden');
+          paymentFields.classList.remove('hidden');
+          populateOutstandingInvoicesList();
+          setPaymentDateToToday();
+        }
+      });
+    });
+
+    submitBtn.addEventListener('click', ()=>{
+      const type = Array.from(entryTypeRadios).find(r=>r.checked).value;
+
+      if(type==='invoice'){
+        const d = newInvoiceDateInput.value.trim();
+        const num = newInvoiceNumberInput.value.trim();
+        const comp = newInvoiceCompanyInput.value.trim().toUpperCase();
+        const supp = newInvoiceSupplierInput.value.trim().toUpperCase();
+        const amt = parseAmount(newInvoiceAmountInput.value);
+        if(!validateDate(d)) return showStatus('Invalid invoice date (dd-mm-yyyy)','err');
+        if(!(d && num && comp && supp)) return showStatus('Fill all invoice fields','err');
+        if(amt<=0) return showStatus('Invoice amount must be > 0','err');
+        rows.push({ Invoice_date:d, Invoice_Number:num, Payment_date:'', Company_Name:comp, Supplier_Name:supp, Invoice_Amount:amt, Amount_Paid:0 });
+        newInvoiceDateInput.value=''; newInvoiceNumberInput.value=''; newInvoiceCompanyInput.value=''; newInvoiceSupplierInput.value=''; newInvoiceAmountInput.value='';
+        refreshFilters(); updateDashboard(); persist(); showStatus('Invoice added (local only)');
+      } else {
+        const d = newPaymentDateInput.value.trim();
+        if(!validateDate(d)) return showStatus('Invalid payment date (dd-mm-yyyy)','err');
+        const inv = outstandingInvoiceSelect.value;
+        const comp = newPaymentCompanySelect.value;
+        const supp = newPaymentSupplierSelect.value;
+        const opt = outstandingInvoiceSelect.options[outstandingInvoiceSelect.selectedIndex];
+        const outstanding = opt? parseAmount(opt.dataset.amount||0):0;
+        const paid = parseAmount(newPaymentAmountInput.value);
+        if(paid<=0) return showStatus('Payment must be > 0','err');
+        if(paid>outstanding) return showStatus('Paid cannot exceed outstanding','err');
+        if(!(d && inv && comp && supp)) return showStatus('Fill all payment fields','err');
+        rows.push({ Invoice_date:'', Invoice_Number:inv, Payment_date:d, Company_Name:comp, Supplier_Name:supp, Invoice_Amount:0, Amount_Paid:paid });
+        newPaymentDateInput.value=''; newPaymentCompanySelect.value=''; newPaymentSupplierSelect.value=''; outstandingInvoiceSelect.value=''; paymentInvoiceNumberInput.value=''; newPaymentAmountInput.value=''; setPaymentDateToToday();
+        refreshFilters(); populateOutstandingInvoicesList(); updateDashboard(); persist(); showStatus('Payment added (local only)');
+      }
+    });
+
+    const invoiceFormFields = [newInvoiceDateInput,newInvoiceNumberInput,newInvoiceCompanyInput,newInvoiceSupplierInput,newInvoiceAmountInput];
+    const paymentFormFields = [newPaymentDateInput,newPaymentCompanySelect,newPaymentSupplierSelect,outstandingInvoiceSelect,newPaymentAmountInput];
+    [...invoiceFormFields, ...paymentFormFields].forEach(el=>{
+      el.addEventListener('keydown', (e)=>{
+        if(e.key==='Enter'){
+          e.preventDefault();
+          const activeSet = invoiceFields.classList.contains('hidden') ? paymentFormFields : invoiceFormFields;
+          const idx = activeSet.indexOf(e.target); const next = idx+1;
+          if(next<activeSet.length) activeSet[next].focus(); else submitBtn.click();
+        }
+      });
+    });
+
+    (async function init(){
+      setPaymentDateToToday();
+      try{
+        await loadFromAPI();
+        showStatus('Loaded from server');
+      }catch{
+        const okLocal = bootstrapFromLocal();
+        if(okLocal){ refreshFilters(); updateDashboard(); showStatus('Loaded from browser cache'); }
+      }
+    })();
+  </script>
+</body>
+</html>
