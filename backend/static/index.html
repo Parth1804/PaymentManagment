@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en" class="h-full scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,37 +7,72 @@
 
   <!-- Tailwind -->
   <script>
-    // Enable "class" strategy for dark mode
     window.tailwind = { config: { darkMode: 'class' } };
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Fonts -->
+  <!-- Fonts: Premium serif headings + clean sans-serif body -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <style>
     :root{ color-scheme: light dark; }
-    html{ font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; }
+    html{ 
+      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto;
+      scroll-behavior: smooth;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
     .glass{
-      backdrop-filter: saturate(180%) blur(18px);
-      background: color-mix(in oklab, color(from white srgb 1 1 1 / .65), transparent);
+      backdrop-filter: saturate(180%) blur(12px);
+      background: rgba(243, 232, 255, 0.4);
+      /* Updated navbar glass from white to purple-tinted with more transparency */
     }
     .glass-dark{
-      backdrop-filter: saturate(180%) blur(18px);
-      background: color-mix(in oklab, color(from black srgb 0 0 0 / .45), transparent);
+      backdrop-filter: saturate(180%) blur(12px);
+      background: rgba(20, 20, 20, 0.6);
     }
-    .card{ border: 1px solid rgba(60,60,67,.12); }
-    .dark .card{ border-color: rgba(255,255,255,.10); }
+    .card{ 
+      border: 1px solid rgba(147, 51, 234, 0.15);
+      transition: all 0.3s ease;
+    }
+    .dark .card{ border-color: rgba(255, 255, 255, 0.08); }
+    .card:hover {
+      border-color: rgba(147, 51, 234, 0.3);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    }
+    .dark .card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 8px 24px rgba(255, 255, 255, 0.05);
+    }
     .scroll-container{ max-height: 420px; overflow: auto; }
+    input, select, textarea {
+      transition: all 0.2s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: rgba(147, 51, 234, 0.5);
+      box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+    }
+    .dark input:focus, .dark select:focus, .dark textarea:focus {
+      border-color: rgba(196, 181, 253, 0.4);
+      box-shadow: 0 0 0 3px rgba(196, 181, 253, 0.1);
+    }
+    button {
+      transition: all 0.2s ease;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
   </style>
 
   <!-- PapaParse (CSV helper) -->
   <script defer src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <script>
-    // Theme: honor user preference first time, then remember toggle
     (function(){
       const saved = localStorage.getItem('theme');
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -50,28 +85,33 @@
   </script>
 </head>
 
-<body class="min-h-full bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 selection:bg-black selection:text-white">
+<!-- Changed body background from amber to purple tones -->
+<body class="min-h-full bg-purple-50 text-gray-900 dark:bg-gray-950 dark:text-gray-50 selection:bg-purple-700 selection:text-white">
   <!-- Header -->
-  <header class="sticky top-0 z-50 border-b border-black/5 dark:border-white/10">
+  <!-- Updated header border to purple -->
+  <header class="sticky top-0 z-50 border-b border-purple-200/30 dark:border-purple-900/20">
     <div class="glass dark:glass-dark">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex h-14 items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="h-6 w-6 rounded-full bg-black dark:bg-white"></div>
-            <span class="text-sm font-semibold tracking-tight">Invoice & Payment Dashboard</span>
-          </div>
+      <div class="mx-auto max-w-7xl px-6 sm:px-8 lg:px-10">
+        <div class="flex h-16 items-center justify-between">
           <div class="flex items-center gap-4">
-            <nav class="hidden sm:flex items-center gap-3 text-xs text-neutral-600 dark:text-neutral-300">
-              <a class="hover:text-black dark:hover:text-white" href="#data">Data</a>
-              <span>•</span>
-              <a class="hover:text-black dark:hover:text-white" href="#entry">New Entry</a>
-              <span>•</span>
-              <a class="hover:text-black dark:hover:text-white" href="#table">Invoices</a>
+            <!-- Updated gradient logo to purple -->
+            <div class="h-8 w-8 rounded-full bg-gradient-to-br from-purple-600 to-purple-800 dark:from-purple-400 dark:to-purple-600 shadow-lg"></div>
+            <span class="text-base font-semibold tracking-tight text-gray-900 dark:text-white">Invoice & Payment</span>
+          </div>
+          <div class="flex items-center gap-6">
+            <nav class="hidden sm:flex items-center gap-4 text-sm text-gray-600 dark:text-gray-300 font-medium">
+              <!-- Updated nav link hover color to purple -->
+              <a class="hover:text-purple-700 dark:hover:text-purple-400 transition" href="#data">Data</a>
+              <span class="text-gray-300 dark:text-gray-600">•</span>
+              <a class="hover:text-purple-700 dark:hover:text-purple-400 transition" href="#entry">Entry</a>
+              <span class="text-gray-300 dark:text-gray-600">•</span>
+              <a class="hover:text-purple-700 dark:hover:text-purple-400 transition" href="#table">Invoices</a>
             </nav>
 
             <!-- Dark mode toggle -->
+            <!-- Updated theme toggle border and hover to purple -->
             <button id="theme-toggle" aria-label="Toggle theme"
-              class="rounded-xl border border-black/10 dark:border-white/15 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-200 hover:bg-black/5 dark:hover:bg-white/10">
+              class="rounded-full border border-purple-300/50 dark:border-purple-600/50 px-4 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors">
               <span id="theme-label">Dark</span> ▾
             </button>
           </div>
@@ -80,120 +120,131 @@
     </div>
   </header>
 
-  <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+  <main class="mx-auto max-w-7xl px-6 sm:px-8 lg:px-10 py-12 space-y-10">
     <!-- Hero -->
-    <section class="text-center">
-      <h1 class="text-4xl font-semibold tracking-tight">Invoice & Payment Dashboard</h1>
-      <p class="mt-2 text-neutral-600 dark:text-neutral-300">Upload once → stored in DB → always loads from API.</p>
+    <section class="text-center space-y-4 py-8">
+      <h1 class="text-5xl md:text-6xl font-bold tracking-tight text-gray-900 dark:text-white leading-tight">
+        Invoice & Payment Dashboard
+      </h1>
+      <p class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
+        Upload once, stored securely, always accessible. Streamline your payment tracking with a modern, intuitive interface.
+      </p>
     </section>
 
     <!-- Data controls -->
-    <section id="data" class="card rounded-2xl bg-white dark:bg-neutral-900 p-5">
-      <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-        <!-- CSV file upload -->
+    <section id="data" class="card rounded-3xl bg-white dark:bg-gray-900 p-8 shadow-sm">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
         <div class="w-full md:w-1/2">
-          <label for="csv-file-input" class="block text-sm font-medium text-neutral-600 dark:text-neutral-300">Upload CSV Data File</label>
+          <label for="csv-file-input" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">Upload CSV Data File</label>
+          <!-- Updated file input button color to purple -->
           <input type="file" id="csv-file-input" accept=".csv"
-            class="mt-2 block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-neutral-200 file:text-neutral-900 hover:file:bg-neutral-300 dark:file:bg-neutral-800 dark:file:text-neutral-100 dark:hover:file:bg-neutral-700" />
+            class="block w-full text-sm px-4 py-3 rounded-2xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 dark:file:bg-purple-700 dark:hover:file:bg-purple-600 transition" />
         </div>
-        <div class="w-full md:w-1/2 flex flex-wrap justify-end gap-2">
-          <button id="load-data-btn" class="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90 dark:bg-white dark:text-black">Load Data</button>
-          <button id="download-data-btn" class="rounded-xl bg-neutral-900/80 px-4 py-2 text-sm font-medium text-white hover:opacity-95 dark:bg-neutral-100 dark:text-black">Download Data</button>
-          <label class="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300 ml-auto md:ml-0">
-            <input id="autosave" type="checkbox" class="h-4 w-4 accent-black dark:accent-white" checked /> Auto-save to browser
+        <div class="w-full md:w-auto flex flex-wrap justify-end gap-3">
+          <!-- Updated button colors to purple -->
+          <button id="load-data-btn" class="rounded-2xl bg-purple-700 px-6 py-3 text-sm font-semibold text-white hover:bg-purple-800 dark:bg-purple-600 dark:hover:bg-purple-700 shadow-md hover:shadow-lg transition">Load Data</button>
+          <button id="download-data-btn" class="rounded-2xl bg-gray-200 dark:bg-gray-800 px-6 py-3 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-700 transition">Download</button>
+          <!-- Updated checkbox accent to purple -->
+          <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
+            <input id="autosave" type="checkbox" class="h-4 w-4 accent-purple-700 dark:accent-purple-500 rounded" checked /> Auto-save
           </label>
         </div>
       </div>
     </section>
 
     <!-- Entry Form -->
-    <section id="entry" class="card rounded-2xl bg-white dark:bg-neutral-900 p-5">
-      <h2 class="text-lg font-semibold">Enter New Entry</h2>
-      <div class="flex items-center gap-4 mt-4 mb-6">
-        <label class="inline-flex items-center gap-2 text-sm">
-          <input type="radio" name="entry-type" value="invoice" checked class="h-4 w-4 accent-black dark:accent-white">New Invoice
+    <section id="entry" class="card rounded-3xl bg-white dark:bg-gray-900 p-8 shadow-sm">
+      <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">New Entry</h2>
+      <!-- Updated radio button background and accent to purple -->
+      <div class="flex items-center gap-6 mb-8 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl w-fit">
+        <label class="inline-flex items-center gap-3 text-sm font-semibold cursor-pointer">
+          <input type="radio" name="entry-type" value="invoice" checked class="h-4 w-4 accent-purple-700 dark:accent-purple-500">
+          <span class="text-gray-900 dark:text-white">Invoice</span>
         </label>
-        <label class="inline-flex items-center gap-2 text-sm">
-          <input type="radio" name="entry-type" value="payment" class="h-4 w-4 accent-black dark:accent-white">New Payment
+        <label class="inline-flex items-center gap-3 text-sm font-semibold cursor-pointer">
+          <input type="radio" name="entry-type" value="payment" class="h-4 w-4 accent-purple-700 dark:accent-purple-500">
+          <span class="text-gray-900 dark:text-white">Payment</span>
         </label>
       </div>
 
       <!-- Invoice Fields -->
-      <div id="invoice-fields" class="grid sm:grid-cols-2 gap-4">
+      <div id="invoice-fields" class="grid sm:grid-cols-2 gap-6 mb-8">
         <div>
-          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Invoice Date (dd-mm-yyyy)</label>
-          <input id="new-invoice-date" placeholder="dd-mm-yyyy" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10" />
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Invoice Date (dd-mm-yyyy)</label>
+          <input id="new-invoice-date" placeholder="dd-mm-yyyy" class="w-full rounded-2xl border border-gray-300 dark:border-gray-700 px-4 py-3 text-sm bg-white dark:bg-gray-800" />
         </div>
         <div>
-          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Invoice Number</label>
-          <input id="new-invoice-number" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10" />
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Invoice Number</label>
+          <input id="new-invoice-number" class="w-full rounded-2xl border border-gray-300 dark:border-gray-700 px-4 py-3 text-sm bg-white dark:bg-gray-800" />
         </div>
         <div>
-          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Company</label>
-          <input id="new-invoice-company" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10" />
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Company</label>
+          <input id="new-invoice-company" class="w-full rounded-2xl border border-gray-300 dark:border-gray-700 px-4 py-3 text-sm bg-white dark:bg-gray-800" />
         </div>
         <div>
-          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Supplier</label>
-          <input id="new-invoice-supplier" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10" />
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Supplier</label>
+          <input id="new-invoice-supplier" class="w-full rounded-2xl border border-gray-300 dark:border-gray-700 px-4 py-3 text-sm bg-white dark:bg-gray-800" />
         </div>
-        <div>
-          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Invoice Amount</label>
-          <input type="text" inputmode="decimal" id="new-invoice-amount" placeholder="e.g. 5000 or 5,000" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10" />
+        <div class="sm:col-span-2">
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Invoice Amount</label>
+          <input type="text" inputmode="decimal" id="new-invoice-amount" placeholder="e.g. 5000 or 5,000" class="w-full rounded-2xl border border-gray-300 dark:border-gray-700 px-4 py-3 text-sm bg-white dark:bg-gray-800" />
         </div>
       </div>
 
       <!-- Payment Fields -->
-      <div id="payment-fields" class="grid sm:grid-cols-2 gap-4 hidden">
+      <div id="payment-fields" class="grid sm:grid-cols-2 gap-6 mb-8 hidden">
         <div>
-          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Payment Date (dd-mm-yyyy)</label>
-          <input id="new-payment-date" placeholder="dd-mm-yyyy" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10" />
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Payment Date (dd-mm-yyyy)</label>
+          <input id="new-payment-date" placeholder="dd-mm-yyyy" class="w-full rounded-2xl border border-gray-300 dark:border-gray-700 px-4 py-3 text-sm bg-white dark:bg-gray-800" />
         </div>
         <div>
-          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Company</label>
-          <select id="new-payment-company-select" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10">
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Company</label>
+          <select id="new-payment-company-select" class="w-full rounded-2xl border border-gray-300 dark:border-gray-700 px-4 py-3 text-sm bg-white dark:bg-gray-800">
             <option value="">-- Select Company --</option>
           </select>
         </div>
         <div>
-          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Supplier</label>
-          <select id="new-payment-supplier-select" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10">
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Supplier</label>
+          <select id="new-payment-supplier-select" class="w-full rounded-2xl border border-gray-300 dark:border-gray-700 px-4 py-3 text-sm bg-white dark:bg-gray-800">
             <option value="">-- Select Supplier --</option>
           </select>
         </div>
         <div>
-          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Select Outstanding Invoice</label>
-          <select id="outstanding-invoice-select" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10">
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Outstanding Invoice</label>
+          <select id="outstanding-invoice-select" class="w-full rounded-2xl border border-gray-300 dark:border-gray-700 px-4 py-3 text-sm bg-white dark:bg-gray-800">
             <option value="">-- Select an Invoice --</option>
           </select>
-          <div id="no-outstanding-invoices" class="mt-2 text-xs text-neutral-500 hidden">No outstanding invoices found.</div>
+          <div id="no-outstanding-invoices" class="mt-2 text-xs text-gray-500 hidden">No outstanding invoices found.</div>
         </div>
         <div>
-          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Invoice Number</label>
-          <input id="payment-invoice-number" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-neutral-100 dark:bg-neutral-800 dark:border-white/10" readonly />
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Invoice Number</label>
+          <input id="payment-invoice-number" class="w-full rounded-2xl border border-gray-300 dark:border-gray-700 px-4 py-3 text-sm bg-gray-100 dark:bg-gray-800" readonly />
         </div>
         <div>
-          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Amount Paid</label>
-          <input type="text" inputmode="decimal" id="new-payment-amount" placeholder="e.g. 1200 or 1,200" class="mt-1 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10" />
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Amount Paid</label>
+          <input type="text" inputmode="decimal" id="new-payment-amount" placeholder="e.g. 1200 or 1,200" class="w-full rounded-2xl border border-gray-300 dark:border-gray-700 px-4 py-3 text-sm bg-white dark:bg-gray-800" />
         </div>
       </div>
 
-      <button id="submit-btn" class="mt-6 w-full rounded-xl bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90 dark:bg-white dark:text-black">Add Entry</button>
+      <!-- Updated submit button color to purple -->
+      <button id="submit-btn" class="w-full rounded-2xl bg-purple-700 px-6 py-4 text-base font-semibold text-white hover:bg-purple-800 dark:bg-purple-600 dark:hover:bg-purple-700 shadow-md hover:shadow-lg transition">Add Entry</button>
     </section>
 
-    <div id="status-message" class="hidden card rounded-2xl bg-white dark:bg-neutral-900 p-4 text-center text-sm"></div>
+    <div id="status-message" class="hidden card rounded-2xl bg-white dark:bg-gray-900 p-4 text-center text-sm font-medium shadow-sm"></div>
 
     <!-- Filters -->
-    <section class="card rounded-2xl bg-white dark:bg-neutral-900 p-5">
-      <div class="grid sm:grid-cols-2 gap-4">
+    <section class="card rounded-3xl bg-white dark:bg-gray-900 p-8 shadow-sm">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Filter Data</h3>
+      <div class="grid sm:grid-cols-2 gap-6">
         <div>
-          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Select Company</label>
-          <select id="company-filter" class="mt-2 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10">
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">Company</label>
+          <select id="company-filter" class="w-full rounded-2xl border border-gray-300 dark:border-gray-700 px-4 py-3 text-sm bg-white dark:bg-gray-800">
             <option value="">All Companies</option>
           </select>
         </div>
         <div>
-          <label class="block text-sm text-neutral-600 dark:text-neutral-300">Select Supplier</label>
-          <select id="supplier-filter" class="mt-2 w-full rounded-xl border card px-3 py-2 text-sm bg-white dark:bg-neutral-950 dark:border-white/10">
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">Supplier</label>
+          <select id="supplier-filter" class="w-full rounded-2xl border border-gray-300 dark:border-gray-700 px-4 py-3 text-sm bg-white dark:bg-gray-800">
             <option value="">All Suppliers</option>
           </select>
         </div>
@@ -201,44 +252,47 @@
     </section>
 
     <!-- KPIs -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="card rounded-2xl bg-white dark:bg-neutral-900 p-6 text-center">
-        <div class="text-sm text-neutral-600 dark:text-neutral-300">Total Invoice Amount</div>
-        <div id="cumulative-invoice-amount" class="mt-2 text-3xl font-semibold">₹0.00</div>
+    <!-- Updated KPI colors to purple accent -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="card rounded-3xl bg-white dark:bg-gray-900 p-8 shadow-sm hover:shadow-md transition">
+        <div class="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Total Invoice Amount</div>
+        <div id="cumulative-invoice-amount" class="mt-4 text-4xl font-bold text-purple-700 dark:text-purple-400">₹0.00</div>
       </div>
-      <div class="card rounded-2xl bg-white dark:bg-neutral-900 p-6 text-center">
-        <div class="text-sm text-neutral-600 dark:text-neutral-300">Total Paid Amount</div>
-        <div id="cumulative-paid-amount" class="mt-2 text-3xl font-semibold">₹0.00</div>
+      <div class="card rounded-3xl bg-white dark:bg-gray-900 p-8 shadow-sm hover:shadow-md transition">
+        <div class="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Total Paid Amount</div>
+        <div id="cumulative-paid-amount" class="mt-4 text-4xl font-bold text-green-600 dark:text-green-400">₹0.00</div>
       </div>
-      <div class="card rounded-2xl bg-white dark:bg-neutral-900 p-6 text-center">
-        <div class="text-sm text-neutral-600 dark:text-neutral-300">Outstanding Amount</div>
-        <div id="outstanding-amount" class="mt-2 text-3xl font-semibold text-red-600">₹0.00</div>
+      <div class="card rounded-3xl bg-white dark:bg-gray-900 p-8 shadow-sm hover:shadow-md transition">
+        <div class="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Outstanding Amount</div>
+        <div id="outstanding-amount" class="mt-4 text-4xl font-bold text-red-600 dark:text-red-400">₹0.00</div>
       </div>
     </section>
 
     <!-- Table -->
-    <section id="table" class="card rounded-2xl bg-white dark:bg-neutral-900 p-5">
-      <h2 class="text-lg font-semibold mb-4">Invoice Details</h2>
-      <div class="scroll-container rounded-xl">
-        <table class="min-w-full divide-y divide-neutral-200 dark:divide-white/10">
-          <thead class="sticky top-0 bg-neutral-100 dark:bg-neutral-800 z-10">
+    <section id="table" class="card rounded-3xl bg-white dark:bg-gray-900 p-8 shadow-sm">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Invoice Details</h2>
+      <div class="overflow-x-auto scroll-container rounded-2xl">
+        <table class="w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="sticky top-0 bg-gray-50 dark:bg-gray-800 z-10">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 dark:text-neutral-300 uppercase">Invoice Number</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 dark:text-neutral-300 uppercase">Invoice Date</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 dark:text-neutral-300 uppercase">Company</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 dark:text-neutral-300 uppercase">Supplier</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 dark:text-neutral-300 uppercase">Invoice Amount</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 dark:text-neutral-300 uppercase">Amount Paid</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-600 dark:text-neutral-300 uppercase">Outstanding</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Invoice Number</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Invoice Date</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Company</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Supplier</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Invoice Amount</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Amount Paid</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Outstanding</th>
             </tr>
           </thead>
-          <tbody id="table-body" class="divide-y divide-neutral-200 dark:divide-white/10"></tbody>
+          <tbody id="table-body" class="divide-y divide-gray-200 dark:divide-gray-700"></tbody>
         </table>
-        <div id="no-data" class="hidden text-center text-neutral-400 dark:text-neutral-500 p-6">No matching data found.</div>
+        <div id="no-data" class="hidden text-center text-gray-400 dark:text-gray-500 p-8 text-sm">No matching data found.</div>
       </div>
     </section>
 
-    <footer class="py-10 text-center text-xs text-neutral-500 dark:text-neutral-400">Upload once → saved to DB → loads automatically.</footer>
+    <footer class="py-12 text-center text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-800">
+      <p class="font-medium">Upload once → saved securely → always accessible</p>
+    </footer>
   </main>
 
   <script>
@@ -300,11 +354,11 @@
 
     function showStatus(msg, kind='ok'){
       statusMessage.textContent = msg;
-      statusMessage.classList.remove('hidden','bg-red-100','text-red-800','bg-green-100','text-green-800','dark:bg-red-900/30','dark:text-red-200','dark:bg-green-900/30','dark:text-green-200');
+      statusMessage.classList.remove('hidden','bg-green-50','text-green-800','bg-red-50','text-red-800','dark:bg-green-900/30','dark:text-green-200','dark:bg-red-900/30','dark:text-red-200');
       if(kind==='ok'){
-        statusMessage.classList.add('bg-green-100','text-green-800','dark:bg-green-900/30','dark:text-green-200');
+        statusMessage.classList.add('bg-green-50','text-green-800','dark:bg-green-900/30','dark:text-green-200');
       } else {
-        statusMessage.classList.add('bg-red-100','text-red-800','dark:bg-red-900/30','dark:text-red-200');
+        statusMessage.classList.add('bg-red-50','text-red-800','dark:bg-red-900/30','dark:text-red-200');
       }
       setTimeout(()=>statusMessage.classList.add('hidden'), 2500);
     }
@@ -429,13 +483,13 @@
         consolidated.forEach(item=>{
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td class="px-6 py-3 text-sm">${item.Invoice_Number}</td>
-            <td class="px-6 py-3 text-sm">${item.Invoice_date || ''}</td>
-            <td class="px-6 py-3 text-sm">${(item.Company_Name||'').toUpperCase()}</td>
-            <td class="px-6 py-3 text-sm">${(item.Supplier_Name||'').toUpperCase()}</td>
-            <td class="px-6 py-3 text-sm">₹${(item.Invoice_Amount||0).toFixed(2)}</td>
-            <td class="px-6 py-3 text-sm">₹${(item.Amount_Paid||0).toFixed(2)}</td>
-            <td class="px-6 py-3 text-sm ${item.Outstanding>0?'text-red-500 dark:text-red-400 font-semibold':'text-green-600 dark:text-green-400'}">₹${(item.Outstanding||0).toFixed(2)}</td>`;
+            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white font-medium">${item.Invoice_Number}</td>
+            <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">${item.Invoice_date || ''}</td>
+            <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">${(item.Company_Name||'').toUpperCase()}</td>
+            <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">${(item.Supplier_Name||'').toUpperCase()}</td>
+            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white font-semibold">₹${(item.Invoice_Amount||0).toFixed(2)}</td>
+            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white font-semibold">₹${(item.Amount_Paid||0).toFixed(2)}</td>
+            <td class="px-6 py-4 text-sm font-semibold ${item.Outstanding>0?'text-red-600 dark:text-red-400':'text-green-600 dark:text-green-400'}">₹${(item.Outstanding||0).toFixed(2)}</td>`;
           tableBody.appendChild(tr);
         });
       }
